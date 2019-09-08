@@ -43,7 +43,6 @@ function start() {
                     if (res[i].product_name == ans.choice) {
                         var product = ans.choice;
                         var id = i
-
                         inquirer.prompt({
                             name: "count",
                             type: "input",
@@ -57,6 +56,7 @@ function start() {
                                         start();
                                     })
                             }
+
                         })
                     }
                 }
