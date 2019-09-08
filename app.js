@@ -11,6 +11,7 @@ var connection = mysql.createConnection({
 
 connection.connect(function (err) {
     if (err) throw err;
+    console.log("successfully connected")
     start()
 })
 
@@ -19,35 +20,47 @@ function start() {
         if (err) throw err;
         console.log("--------- Products for Sale ----------")
         for (var i = 0; i < res.length; i++) {
-            console.log(res[i].id + " " + res[i].product_name + " $" + res[i].price)
+            console.log(res[i].id + " " + res[i].product_name + " $" + res[i].price + " " + res[i].stock_quantity)
         }
 
         inquirer
             .prompt([{
-                    name: "pick",
-                    type: "rawlist",
-                    choices: function () {
-                        var items = [];
-                        for (var i = 0; i < res.length; i++) {
-                            items.push(res[i].id);
-                        }
-                        return items;
-                    },
-                    message: "Which item would you like to buy?"
+                name: "choice",
+                type: "rawlist",
+                choices: function () {
+                    var items = [];
+                    for (var i = 0; i < res.length; i++) {
+                        items.push(res[i].product_name);
+                    }
+                    return items;
                 },
-                {
-                    name: "count",
-                    type: "input",
-                    message: "How many would you like to purchase?"
-                }
-            ])
+                message: "Which item would you like to buy?"
+            }])
             .then(function (ans) {
-                var selection;
+
+
                 for (var i = 0; i < res.length; i++) {
-                    if (res[i].id === ans.pick) {
-                        selection = res[i];
+                    if (res[i].product_name == ans.choice) {
+                        var product = ans.choice;
+                        var id = i
+
+                        inquirer.prompt({
+                            name: "count",
+                            type: "input",
+                            message: "How many would you like to purchase?",
+                        }).then(function (ans) {
+                            if ((res[id].stock_quantity - ans.count) > 0) {
+                                connection.query("UPDATE products SET stock_quantity='" + (res[id].stock_quantity - ans.count) +
+                                    "' WHERE product_name='" + product + "'",
+                                    function (err, res2) {
+                                        console.log("Purchased product")
+                                        start();
+                                    })
+                            }
+                        })
                     }
                 }
             })
+
     })
 }
